@@ -3,7 +3,6 @@
 extern int max_files;
 
 typedef enum lang{
-	PYTHON,
 	CPP,
 	C,
 	JAVA,
@@ -12,8 +11,10 @@ typedef enum lang{
 
 typedef struct cfg {
 	Language language;
+	char* extension;
 	char** files;
 	int file_count;
+	char* name;
 } Config;
 
 void add_file(char* filename);

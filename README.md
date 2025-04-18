@@ -2,3 +2,13 @@
 
 Written in C, builder is efficient and provides an easy-to-use configuration file.
 
+builder currently supports:
+
+- C 
+
+Example config file:
+
+    language: c
+    name: example-project
+    files: main.c
+
