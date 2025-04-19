@@ -67,30 +67,41 @@ void cleanup() {
 }
 
 bool build() {
+	char* files = strdup(config.files[0]);
+	size_t files_size = strlen(files) + 1;
+	size_t buffer_size = 0;
+	size_t output_size = 0;
+	char* buffer = NULL;
+	for (int i = 1; i < config.file_count; i++) {
+		size_t extra_len = strlen(config.files[i]) + 1;
+		files_size += extra_len;
+		files = realloc(files, files_size);
+		strcat(files, " ");
+		strcat(files, config.files[i]);
+	}
 	switch (config.language) {
 		case C:
-			char* files = strdup(config.files[0]);
-			size_t files_size = strlen(files) + 1;
-			for (int i = 1; i < config.file_count; i++) {
-				size_t extra_len = strlen(config.files[i]) + 1;
-				files_size += extra_len;
-				files = realloc(files, files_size);
-				strcat(files, " ");
-				strcat(files, config.files[i]);
-			}
-			//printf("gcc -o %s %s\n", config.name, files);
-			size_t buffer_size = files_size;
-			size_t output_size = strlen(config.name);
+			buffer_size = files_size;
+			output_size = strlen(config.name);
 			buffer_size += output_size;
 			buffer_size += 10;
-			char* buffer = malloc(buffer_size);
+			buffer = malloc(buffer_size);
 			snprintf(buffer, buffer_size, "gcc -o %s %s\n", config.name, files);
 			system(buffer);
 			free(buffer);
 			free(files);
 			return true;
 		case CPP:
-			break;
+			buffer_size = files_size;
+			output_size = strlen(config.name);
+			buffer_size += output_size;
+			buffer_size += 10;
+			buffer = malloc(buffer_size);
+			snprintf(buffer, buffer_size, "g++ -o %s %s\n", config.name, files);
+			system(buffer);
+			free(buffer);
+			free(files);
+			return true;
 		case JAVA:
 			break;
 		default:
@@ -101,6 +112,17 @@ bool build() {
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		printf("Usage: builder <config_file>\nFor help, type: builder help\n");
+		return 0;
+	}
+	if (!strcmp(argv[1], "help")) {
+		printf("builder is a build system with easy-to-use config language and support for many languages.\nUsage: builder <config_file>.\nFor example file, type: builder example\n");
+		return 0;
+	}
+	else if (!strcmp(argv[1], "example")) {
+		fptr = fopen("config", "w");
+		fprintf(fptr, "language: c\nname: example-project\nfiles: main.c");
+		if (fptr) fclose(fptr);
+		printf("builder: example file is created.\n");
 		return 0;
 	}
 	fptr = fopen(argv[1], "r");
@@ -121,11 +143,11 @@ int main(int argc, char** argv) {
 		cleanup();
 		return 1;
 	}
-	printf("builder: parsing files...\n");
 	while((nread = getline(&line, &len, fptr)) != -1) {
 		line[strcspn(line, "\n")] = 0;
 		char* word = strtok(line, " ");
 		if (!strcmp(word, "files:")) {
+			printf("builder: parsing files...\n");
 			word = strtok(NULL, " ");
 			while (word && config.file_count < max_files) {
 				//printf("%d: %s\n", config.file_count + 1, word);

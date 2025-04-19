@@ -5,6 +5,7 @@ Written in C, builder is efficient and provides an easy-to-use configuration fil
 builder currently supports:
 
 - C 
+- CPP
 
 Example config file:
 
